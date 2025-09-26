@@ -28,7 +28,7 @@ export async function createRefreshToken(
         userId,
         jti: payload.jti,
         familyId,
-        expiresAt: config.refreshTTL * 1000,
+        expiresAt: Date.now() + config.refreshTTL * 1000,
     });
 
     // revoke token and add the replacedBy field (if the toBeReplaced field exists)
