@@ -1,4 +1,4 @@
-import { z, ZodType } from "zod";
+import { ZodType } from "zod";
 import type { Request, Response, NextFunction } from "express";
 
 export default function validate(
@@ -12,6 +12,6 @@ export default function validate(
                 message: "Validation error",
                 issues: parsed.error.issues,
             });
-        next();
+        return next();
     };
 }
