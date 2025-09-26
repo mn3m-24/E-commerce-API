@@ -11,7 +11,7 @@ export default {
         return {
             httpOnly: true,
             sameSite: "lax" as const,
-            path: "/api/auth/refresh",
+            path: "/api/auth/",
             maxAge: this.refreshTTL * 1000,
         };
     },
