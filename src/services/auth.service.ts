@@ -1,5 +1,5 @@
 import config from "../config/config.ts";
-import refreshTokenModel, {
+import RefreshToken, {
     type IRfreshToken,
 } from "../models/refreshToken.model.ts";
 import { randomUUID } from "node:crypto";
@@ -10,8 +10,8 @@ import {
 } from "../utils/jwt.utils.ts";
 import { hashInput } from "../utils/hash.utils.ts";
 
-export function createAccessToken(userId: string, email: string) {
-    return signAccessToken({ sub: userId, email });
+export function createAccessToken(userId: string, role: "customer" | "admin") {
+    return signAccessToken({ sub: userId, role });
 }
 
 export async function createRefreshToken(
@@ -23,7 +23,7 @@ export async function createRefreshToken(
     const token = signRefreshToken(payload);
     const tokenHash = hashInput(token);
 
-    const dbToken = await refreshTokenModel.create({
+    const dbToken = await RefreshToken.create({
         tokenHash,
         userId,
         jti: payload.jti,
@@ -42,9 +42,9 @@ export async function createRefreshToken(
 }
 
 export async function revokeFamilyTokens(familyId: string) {
-    await refreshTokenModel.updateMany({ familyId }, { revoked: true });
+    await RefreshToken.updateMany({ familyId }, { revoked: true });
 }
 
 export async function getFamilyTokens(familyId: string) {
-    return refreshTokenModel.find({ familyId }).sort({ createdAt: -1 });
+    return RefreshToken.find({ familyId }).sort({ createdAt: -1 });
 }

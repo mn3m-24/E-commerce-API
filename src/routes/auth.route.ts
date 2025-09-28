@@ -1,5 +1,5 @@
 import { Router } from "express";
-import validate from "../middlewares/validate.ts";
+import validate from "../middlewares/validateSchema.ts";
 import { registerSchema, refreshSchema } from "../validation/auth.schema.ts";
 import {
     register,

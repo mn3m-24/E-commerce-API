@@ -5,8 +5,8 @@ import { verifyRefreshToken } from "../utils/jwt.utils.ts";
 import { compareHash } from "../utils/hash.utils.ts";
 import {
     createUser,
-    findUserByEmail,
-    findUserById,
+    fetchUserByEmail,
+    fetchUserById,
 } from "../services/users.service.ts";
 import {
     createAccessToken,
@@ -24,13 +24,13 @@ export const register: RequestHandler = async (req, res) => {
 
 export const login: RequestHandler = async (req, res) => {
     const { email, password } = req.body;
-    const user = await findUserByEmail(email);
+    const user = await fetchUserByEmail(email);
 
     if (!user) return res.status(401).json({ error: "User Doesn't exist" });
     if (!compareHash(password, user.passwordHash))
         return res.status(401).json({ error: "Invalid password" });
 
-    const access = createAccessToken(user.id, user.email); // access token generation
+    const access = createAccessToken(user.id, user.role); // access token generation
     const refresh = await createRefreshToken(user.id); // refresh token generation
 
     res.cookie("refreshToken", refresh, config.refreshOptions); // send refresh token in a cookie
@@ -81,10 +81,10 @@ export const refresh: RequestHandler = async (req, res) => {
     );
 
     // create access token
-    const user = await findUserById(matchedToken.userId);
+    const user = await fetchUserById(matchedToken.userId.toString());
     const newAccess = createAccessToken(
         matchedToken.userId.toString(),
-        user!.email,
+        user!.role,
     );
 
     // send new refresh token in a cookie
