@@ -16,5 +16,20 @@ export const fetchUsers = async () => User.find().lean();
 export const removeUserById = async (id: string) =>
     User.findByIdAndDelete(new Types.ObjectId(id)).lean();
 
-export const updateUserById = async (id: string, newFields: object) =>
-    User.findByIdAndUpdate(new Types.ObjectId(id), { $set: newFields }).lean();
+export const updateUserById = async (
+    id: string,
+    newFields: Record<string, any>,
+) => {
+    const updateData: Record<string, string> = { ...newFields };
+    if (newFields.password) {
+        updateData.passwordHash = hashInput(newFields.password);
+        delete updateData.password;
+    }
+    return User.findByIdAndUpdate(
+        new Types.ObjectId(id),
+        {
+            $set: updateData,
+        },
+        { new: true },
+    ).lean();
+};
