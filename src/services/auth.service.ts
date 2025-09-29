@@ -1,4 +1,5 @@
 import config from "../config/config.ts";
+import { Types } from "mongoose";
 import RefreshToken, {
     type IRfreshToken,
 } from "../models/refreshToken.model.ts";
@@ -10,8 +11,8 @@ import {
 } from "../utils/jwt.utils.ts";
 import { hashInput } from "../utils/hash.utils.ts";
 
-export function createAccessToken(userId: string, role: "customer" | "admin") {
-    return signAccessToken({ sub: userId, role });
+export function createAccessToken(sub: string, role: "customer" | "admin") {
+    return signAccessToken({ sub, role });
 }
 
 export async function createRefreshToken(
@@ -25,7 +26,7 @@ export async function createRefreshToken(
 
     const dbToken = await RefreshToken.create({
         tokenHash,
-        userId,
+        userId: new Types.ObjectId(userId),
         jti: payload.jti,
         familyId,
         expiresAt: Date.now() + config.refreshTTL * 1000,
