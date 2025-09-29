@@ -30,8 +30,8 @@ export const login: RequestHandler = async (req, res) => {
     if (!compareHash(password, user.passwordHash))
         return res.status(401).json({ error: "Invalid password" });
 
-    const access = createAccessToken(user.id, user.role); // access token generation
-    const refresh = await createRefreshToken(user.id); // refresh token generation
+    const access = createAccessToken(user._id.toString(), user.role); // access token generation
+    const refresh = await createRefreshToken(user._id.toString()); // refresh token generation
 
     res.cookie("refreshToken", refresh, config.refreshOptions); // send refresh token in a cookie
     return res.json({ access }); // send access token in res body
