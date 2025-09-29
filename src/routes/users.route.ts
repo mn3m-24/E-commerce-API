@@ -2,20 +2,24 @@ import { Router } from "express";
 import isAuthenticated from "../middlewares/isAuthenticated.ts";
 import authorizeRoles from "../middlewares/authorizeRole.ts";
 import isObjectId from "../middlewares/isObjectId.ts";
+import validate from "../middlewares/validateSchema.ts";
+import { userSchema } from "../validation/users.schema.ts";
 import {
     getUsers,
     getUser,
-    getMe,
-    patchMe,
+    patchUser,
     deleteUser,
-    deleteMe,
 } from "../controllers/users.controller.ts";
 
 const usersRouter: Router = Router().use(isAuthenticated);
 
 usersRouter.get("/", authorizeRoles("admin"), getUsers);
 
-usersRouter.route("/me").get(getMe).patch(patchMe).delete(deleteMe);
+usersRouter
+    .route("/me")
+    .get(getUser)
+    .patch(validate(userSchema.partial(), "body"), patchUser)
+    .delete(deleteUser);
 
 usersRouter
     .route("/:id")
