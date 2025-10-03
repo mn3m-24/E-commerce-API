@@ -1,36 +1,33 @@
 import type { RequestHandler } from "express";
-import {
-    fetchProducts,
-    fetchProduct,
-    createProduct,
-    updateProduct,
-    removeProduct,
-} from "../services/products.service.ts";
+import ProductService from "../services/products.service.ts";
 
 export const getProducts: RequestHandler = async (req, res) => {
-    const products = await fetchProducts();
+    const products = await ProductService.fetchProducts();
     return res.status(200).json(products);
 };
 
-export const getProduct: RequestHandler = async (req, res) => {
-    const product = await fetchProduct(req.params.id!);
+export const getOneProduct: RequestHandler = async (req, res) => {
+    const product = await ProductService.fetchProduct(req.params.id!);
     return res.status(200).json(product);
 };
 
-export const postProduct: RequestHandler = async (req, res) => {
+export const postOneProduct: RequestHandler = async (req, res) => {
     const { name, price, category } = req.body;
-    const product = await createProduct(name, price, category);
+    const product = await ProductService.createProduct(name, price, category);
     return res
         .status(201)
         .json({ message: "Product created successfully", product });
 };
 
-export const patchProduct: RequestHandler = async (req, res) => {
-    const product = await updateProduct(req.params.id!, req.body);
+export const patchOneProduct: RequestHandler = async (req, res) => {
+    const product = await ProductService.updateProduct(
+        req.params.id!,
+        req.body,
+    );
     return res.status(200).json(product);
 };
 
-export const deleteProduct: RequestHandler = async (req, res) => {
-    const result = await removeProduct(req.params.id!);
+export const deleteOneProduct: RequestHandler = async (req, res) => {
+    const result = await ProductService.removeProduct(req.params.id!);
     return res.status(200).json({ message: "Deleted Successfully", result });
 };

@@ -1,20 +1,32 @@
 import { Types } from "mongoose";
 import Product from "../models/product.model.ts";
 
-export const fetchProducts = async () => Product.find().lean();
+export default class ProductService {
+    static async fetchProducts() {
+        return Product.find().lean();
+    }
 
-export const fetchProduct = async (id: string) =>
-    Product.findById(new Types.ObjectId(id)).lean();
+    static async fetchProduct(id: string) {
+        return Product.findById(new Types.ObjectId(id)).lean();
+    }
 
-export const createProduct = (name: string, price: number, category: string) =>
-    Product.create({ name, price, category: new Types.ObjectId(category) });
+    static async createProduct(name: string, price: number, category: string) {
+        return Product.create({
+            name,
+            price,
+            category: new Types.ObjectId(category),
+        });
+    }
 
-export const updateProduct = (id: string, doc: object) =>
-    Product.findByIdAndUpdate(
-        new Types.ObjectId(id),
-        { $set: doc },
-        { new: true },
-    ).lean();
+    static async updateProduct(id: string, doc: object) {
+        return Product.findByIdAndUpdate(
+            new Types.ObjectId(id),
+            { $set: doc },
+            { new: true },
+        ).lean();
+    }
 
-export const removeProduct = async (id: string) =>
-    Product.findByIdAndDelete(new Types.ObjectId(id)).lean();
+    static async removeProduct(id: string) {
+        return Product.findByIdAndDelete(new Types.ObjectId(id)).lean();
+    }
+}

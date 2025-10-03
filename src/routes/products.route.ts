@@ -6,10 +6,10 @@ import validate from "../middlewares/validateSchema.ts";
 import { productSchema } from "../validation/products.schema.ts";
 import {
     getProducts,
-    getProduct,
-    postProduct,
-    patchProduct,
-    deleteProduct,
+    getOneProduct,
+    postOneProduct,
+    patchOneProduct,
+    deleteOneProduct,
 } from "../controllers/products.controller.ts";
 
 const productsRouter: Router = Router().use(isAuthenticated);
@@ -20,18 +20,18 @@ productsRouter
     .post(
         authorizeRoles("admin"),
         validate(productSchema, "body"),
-        postProduct,
+        postOneProduct,
     );
 
 productsRouter
     .route("/:id")
     .all(isObjectId)
-    .get(getProduct)
+    .get(getOneProduct)
     .patch(
         authorizeRoles("admin"),
         validate(productSchema.partial(), "body"),
-        patchProduct,
+        patchOneProduct,
     )
-    .delete(authorizeRoles("admin"), deleteProduct);
+    .delete(authorizeRoles("admin"), deleteOneProduct);
 
 export default productsRouter;
