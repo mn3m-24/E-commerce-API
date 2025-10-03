@@ -1,14 +1,5 @@
-import { Schema, model, Document, Types } from "mongoose";
-
-export interface IRfreshToken extends Document {
-    tokenHash: string;
-    userId: Types.ObjectId;
-    jti: string;
-    revoked: boolean;
-    replacedBy?: Types.ObjectId;
-    familyId: string;
-    expiresAt: Date;
-}
+import { Schema, model } from "mongoose";
+import type { IRfreshToken } from "../types/refreshTokens.types.ts";
 
 const refreshTokenSchema = new Schema<IRfreshToken>(
     {
