@@ -2,34 +2,39 @@ import User from "../models/user.model.ts";
 import { hashInput } from "../utils/hash.utils.ts";
 import { Types } from "mongoose";
 
-export const createUser = async (email: string, password: string) =>
-    User.create({ email, passwordHash: hashInput(password) });
-
-export const fetchUserByEmail = async (email: string) =>
-    User.findOne({ email }).lean();
-
-export const fetchUserById = async (id: string) =>
-    User.findById(new Types.ObjectId(id)).lean();
-
-export const fetchUsers = async () => User.find().lean();
-
-export const removeUserById = async (id: string) =>
-    User.findByIdAndDelete(new Types.ObjectId(id)).lean();
-
-export const updateUserById = async (
-    id: string,
-    newFields: Record<string, any>,
-) => {
-    const updateData: Record<string, string> = { ...newFields };
-    if (newFields.password) {
-        updateData.passwordHash = hashInput(newFields.password);
-        delete updateData.password;
+export default class UserService {
+    static async createUser(email: string, password: string) {
+        return User.create({ email, passwordHash: hashInput(password) });
     }
-    return User.findByIdAndUpdate(
-        new Types.ObjectId(id),
-        {
-            $set: updateData,
-        },
-        { new: true },
-    ).lean();
-};
+
+    static async fetchUserByEmail(email: string) {
+        return User.findOne({ email }).lean();
+    }
+
+    static async fetchUserById(id: string) {
+        return User.findById(new Types.ObjectId(id)).lean();
+    }
+
+    static async fetchUsers() {
+        return User.find().lean();
+    }
+
+    static async removeUserById(id: string) {
+        return User.findByIdAndDelete(new Types.ObjectId(id)).lean();
+    }
+
+    static async updateUserById(id: string, newFields: Record<string, any>) {
+        const updateData: Record<string, string> = { ...newFields };
+        if (newFields.password) {
+            updateData.passwordHash = hashInput(newFields.password);
+            delete updateData.password;
+        }
+        return User.findByIdAndUpdate(
+            new Types.ObjectId(id),
+            {
+                $set: updateData,
+            },
+            { new: true },
+        ).lean();
+    }
+}

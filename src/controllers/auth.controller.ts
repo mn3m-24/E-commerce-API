@@ -3,23 +3,19 @@ import { type RequestHandler } from "express";
 import { type JwtPayload } from "jsonwebtoken";
 import { verifyRefreshToken } from "../utils/jwt.utils.ts";
 import { compareHash } from "../utils/hash.utils.ts";
-import {
-    createUser,
-    fetchUserByEmail,
-    fetchUserById,
-} from "../services/users.service.ts";
+import UserService from "../services/users.service.ts";
 import AuthService from "../services/auth.service.ts";
 
 export const register: RequestHandler = async (req, res) => {
     const { email, password } = req.body;
 
-    await createUser(email, password);
+    await UserService.createUser(email, password);
     return res.status(201).json({ message: "User Created Successfully" });
 };
 
 export const login: RequestHandler = async (req, res) => {
     const { email, password } = req.body;
-    const user = await fetchUserByEmail(email);
+    const user = await UserService.fetchUserByEmail(email);
 
     if (!user) return res.status(401).json({ error: "User Doesn't exist" });
     if (!compareHash(password, user.passwordHash))
@@ -81,7 +77,9 @@ export const refresh: RequestHandler = async (req, res) => {
     );
 
     // create access token
-    const user = await fetchUserById(matchedToken.userId.toString());
+    const user = await UserService.fetchUserById(
+        matchedToken.userId.toString(),
+    );
     const newAccess = AuthService.createAccessToken(
         matchedToken.userId.toString(),
         user!.role,
