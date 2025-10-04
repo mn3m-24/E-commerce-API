@@ -1,9 +1,17 @@
 import { Types } from "mongoose";
 import Product from "../models/product.model.ts";
+import APIFeatures from "./features.service.ts";
+import type { IProduct } from "../types/products.types.ts";
 
 export default class ProductService {
-    static async fetchProducts() {
-        return Product.find().lean();
+    static async fetchProducts(queryStr: Record<string, any>) {
+        return new APIFeatures<IProduct>(Product.find(), queryStr)
+            .filter()
+            .sort()
+            .limitFields()
+            .paginate()
+            .search()
+            .query.lean();
     }
 
     static async fetchProduct(id: string) {

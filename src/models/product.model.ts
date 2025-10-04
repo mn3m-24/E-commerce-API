@@ -15,4 +15,7 @@ const productSchema = new Schema<IProduct>(
     { timestamps: true },
 );
 
+// creating a text index for searching
+productSchema.index({ name: "text" });
+
 export default model<IProduct>("Product", productSchema);

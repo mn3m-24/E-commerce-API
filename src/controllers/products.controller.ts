@@ -2,7 +2,7 @@ import type { RequestHandler } from "express";
 import ProductService from "../services/products.service.ts";
 
 export const getProducts: RequestHandler = async (req, res) => {
-    const products = await ProductService.fetchProducts();
+    const products = await ProductService.fetchProducts(req.query);
     return res.status(200).json(products);
 };
 
