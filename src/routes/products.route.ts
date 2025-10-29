@@ -26,7 +26,7 @@ productsRouter
 
 productsRouter
     .route("/:id")
-    .all(isObjectId)
+    .all(isObjectId())
     .get(getOneProduct)
     .patch(
         authorizeRoles("admin"),
