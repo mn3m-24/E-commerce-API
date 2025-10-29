@@ -12,26 +12,23 @@ export async function createCategory(req: Request, res: Response) {
 }
 
 export async function getCategory(req: Request, res: Response) {
-    const category = await categoriesService.getOne(req.params.categoryId!);
+    const category = await categoriesService.getOne(req.params.id!);
     return res.status(200).json({ category });
 }
 
 export async function updateCategory(req: Request, res: Response) {
-    const category = await categoriesService.update(
-        req.params.categoryId!,
-        req.body,
-    );
+    const category = await categoriesService.update(req.params.id!, req.body);
     return res.status(200).json({ category });
 }
 
 export async function deleteCategory(req: Request, res: Response) {
-    const category = await categoriesService.delete(req.params.categoryId!);
+    const category = await categoriesService.delete(req.params.id!);
     return res.status(200).json({ category });
 }
 
 export async function getCategoryProducts(req: Request, res: Response) {
     const products = await categoriesService.getProductsByCategory(
-        req.params.categoryId!,
+        req.params.id!,
     );
     return res.status(200).json({ products });
 }

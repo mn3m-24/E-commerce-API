@@ -16,27 +16,31 @@ export default class categoriesService {
     }
 
     static async getOne(id: string) {
-        return Category.findById(new Types.ObjectId(id));
+        return Category.findById(new Types.ObjectId(id)).lean();
     }
 
     static async create(body: { name: string; description: string }) {
-        return Category.create(body);
+        return (await Category.create(body)).toObject();
     }
 
     static async update(
         id: string,
         body: { name?: string; description?: string },
     ) {
-        return Category.findByIdAndUpdate(new Types.ObjectId(id), {
-            $set: body,
-        });
+        return Category.findByIdAndUpdate(
+            new Types.ObjectId(id),
+            {
+                $set: body,
+            },
+            { new: true },
+        ).lean();
     }
 
     static async delete(id: string) {
-        return Category.findByIdAndDelete(new Types.ObjectId(id));
+        return Category.findByIdAndDelete(new Types.ObjectId(id)).lean();
     }
 
     static async getProductsByCategory(id: string) {
-        return Product.find({ category: new Types.ObjectId(id) });
+        return Product.find({ category: new Types.ObjectId(id) }).lean();
     }
 }
