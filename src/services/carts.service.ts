@@ -1,28 +1,18 @@
 import Cart from "../models/cart.model.ts";
+import Product from "../models/product.model.ts";
 import { Types } from "mongoose";
 
 export default class CartService {
-    static async fetchCart(userId: string) {
-        const uid = new Types.ObjectId(userId);
-        return (
-            (await Cart.findOne({ userId: uid }).lean()) || {
-                userId: uid,
-                items: [],
-            }
-        );
+    static async get(userId: string, { populate = false } = {}) {
+        const cart = await this.findOneOrCreate(userId);
+        if (populate) cart.populate("items.productId");
+        return cart.toObject();
     }
 
-    static async wipeCart(userId: string) {
-        const uid = new Types.ObjectId(userId);
-        return (
-            (await Cart.findOneAndUpdate(
-                { userId: uid },
-                {
-                    $set: { items: [] },
-                },
-                { new: true },
-            ).lean()) || { userId: uid, items: [] }
-        );
+    static async clear(userId: string) {
+        return await Cart.findOneAndDelete({
+            userId: new Types.ObjectId(userId),
+        }).lean();
     }
 
     static async updateQuantity(
@@ -30,85 +20,65 @@ export default class CartService {
         productId: string,
         newQuantity: number,
     ) {
-        if (newQuantity === 0) return CartService.removeItem(userId, productId);
+        if (newQuantity === 0) return this.removeItem(userId, productId);
+        const pid = new Types.ObjectId(productId);
+        const product = await Product.findById(pid);
+        if (!product) throw new Error("Product doesn't exist");
+        if (newQuantity > product.stock)
+            throw new Error(
+                "Can't have quantity that is greater than the stock",
+            );
 
-        const uid = new Types.ObjectId(userId),
-            pid = new Types.ObjectId(productId);
+        // updating item's quantity (creating and updating if cart doesn't exist)
+        const cart = await this.findOneOrCreate(userId);
+        const doc = cart.items.find((item) =>
+            pid.equals(item.productId as Types.ObjectId),
+        );
 
-        const updated = await Cart.findOneAndUpdate(
-            {
-                userId: uid,
-                "items.productId": pid,
-            },
-            { $set: { "items.$.quantity": newQuantity } },
-            {
-                new: true,
-            },
-        ).lean();
-        if (updated) return updated; // return the updated version if cart & product exist
+        if (!doc) cart.items.push({ productId: pid, quantity: newQuantity });
+        else doc.quantity = newQuantity;
 
-        // if cart exists (which mean that the productId was the one that do not exist before), push item, else return a new cart with item
-        return Cart.findOneAndUpdate(
-            { userId: uid },
-            { $push: { items: { productId: pid, quantity: newQuantity } } },
-            {
-                upsert: true,
-                new: true,
-            },
-        ).lean();
+        return (await cart.save()).toObject();
     }
 
     static async addItem(
         userId: string,
-        item: { productId: string; quantity: number },
+        { productId, quantity }: { productId: string; quantity: number },
     ) {
-        const uid = new Types.ObjectId(userId),
-            pid = new Types.ObjectId(item.productId);
-        const incResult = await Cart.updateOne(
-            {
-                userId: uid,
-                "items.productId": pid,
-            },
-            { $inc: { "items.$.quantity": item.quantity } },
-        );
-        // if document updated
-        if (incResult.matchedCount > 0) {
-            return await Cart.findOne({ userId: uid }).lean();
-        }
+        const cart = await CartService.findOneOrCreate(userId);
+        const product = await Product.findById(productId);
+        if (!product) throw new Error("Product doesn't exist");
 
-        return (
-            (await Cart.findOneAndUpdate(
-                {
-                    userId: uid,
-                },
-                {
-                    $push: {
-                        items: {
-                            productId: pid,
-                            quantity: item.quantity,
-                        },
-                    },
-                },
-                { upsert: true, new: true },
-            ).lean()) || { userId: uid, items: [] }
+        const doc = cart.items.find(
+            (d) => d.productId._id.toString() == productId,
         );
+
+        if (!doc && quantity <= product.stock) {
+            cart.items.push({ productId: product._id, quantity });
+            return await cart.save();
+        } else if (doc && doc.quantity + quantity <= product.stock) {
+            doc.quantity += quantity;
+            return await cart.save();
+        }
+        throw new Error("Product's stock is Insufficent"); // (doc.quantity + quantity > product.stock) || (quantity > product.stock)
     }
 
     static async removeItem(userId: string, productId: string) {
-        const uid = new Types.ObjectId(userId),
-            pid = new Types.ObjectId(productId);
-        return (
-            (await Cart.findOneAndUpdate(
-                {
-                    userId: uid,
-                },
-                {
-                    $pull: {
-                        items: { productId: pid },
-                    },
-                },
-                { new: true },
-            ).lean()) || { userId: uid, items: [] }
+        const cart = await Cart.findOneAndUpdate(
+            { userId: new Types.ObjectId(userId) },
+            { $pull: { items: { productId: new Types.ObjectId(productId) } } },
+            { new: true },
+        );
+        if (!cart) throw new Error("Cart doesn't exist"); // throw error if cart doesn't exist
+        if (cart.items.length === 0) await cart.deleteOne(); // delete cart if empty
+        return cart.toObject();
+    }
+
+    private static async findOneOrCreate(userId: string) {
+        return await Cart.findOneAndUpdate(
+            { userId: new Types.ObjectId(userId) },
+            { $setOnInsert: { items: [] } },
+            { new: true, upsert: true },
         );
     }
 }

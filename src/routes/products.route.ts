@@ -4,6 +4,7 @@ import authorizeRoles from "../middlewares/authorizeRole.ts";
 import isObjectId from "../middlewares/isObjectId.ts";
 import validate from "../middlewares/validateSchema.ts";
 import { productSchema } from "../validation/products.schema.ts";
+import { featuresSchema } from "../validation/features.schema.ts";
 import {
     getProducts,
     getOneProduct,
@@ -16,7 +17,7 @@ const productsRouter: Router = Router().use(isAuthenticated);
 
 productsRouter
     .route("/")
-    .get(getProducts)
+    .get(validate(featuresSchema, "query"), getProducts)
     .post(
         authorizeRoles("admin"),
         validate(productSchema, "body"),
@@ -25,7 +26,7 @@ productsRouter
 
 productsRouter
     .route("/:id")
-    .all(isObjectId)
+    .all(isObjectId())
     .get(getOneProduct)
     .patch(
         authorizeRoles("admin"),

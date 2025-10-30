@@ -23,7 +23,7 @@ usersRouter
 
 usersRouter
     .route("/:id")
-    .all(isObjectId, authorizeRoles("admin"))
+    .all(isObjectId(), authorizeRoles("admin"))
     .get(getUser)
     .delete(deleteUser);
 
