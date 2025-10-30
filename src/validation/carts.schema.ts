@@ -3,9 +3,9 @@ import { isValidObjectId } from "mongoose";
 
 export const addItemSchema = z.strictObject({
     productId: z.string().refine((value) => isValidObjectId(value)),
-    quantity: z.number().min(0, "Quantity Can't be negative"),
+    quantity: z.number().min(1, "Quantity Can't be zero or negative"),
 });
 
-export const updateItemQuantitySchema = addItemSchema.omit({
-    productId: true,
+export const updateItemQuantitySchema = z.strictObject({
+    quantity: z.number().min(0, "Quantity Can't be zero or negative"),
 });
