@@ -1,5 +1,11 @@
 import { Types, Document } from "mongoose";
 
+export type OrderStatus =
+    | "pending"
+    | "paid"
+    | "cancelled"
+    | "shipped"
+    | "delivered";
 export interface IOrderItem {
     product: Types.ObjectId;
     quantity: number;
@@ -10,7 +16,7 @@ export interface IOrder extends Document {
     userId: Types.ObjectId;
     items: IOrderItem[];
     totalPrice: number;
-    shippingAddress: String;
+    shippingAddress: string;
     status: "pending" | "paid" | "shipped" | "delivered" | "cancelled";
     paymentId: string;
 }
