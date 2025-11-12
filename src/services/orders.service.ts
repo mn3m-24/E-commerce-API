@@ -7,14 +7,16 @@ import type { IOrderItem, OrderStatus } from "../types/orders.types.ts";
 import type { IProduct } from "../types/products.types.ts";
 
 export default class OrderService {
-    private static readonly VALID_STATUS_TRANSITIONS: Record<string, string[]> =
-        {
-            pending: ["paid", "cancelled"],
-            paid: ["shipped", "cancelled"],
-            shipped: ["delivered"],
-            delivered: [],
-            cancelled: [],
-        };
+    private static readonly VALID_STATUS_TRANSITIONS: Record<
+        OrderStatus,
+        OrderStatus[]
+    > = {
+        pending: ["paid", "cancelled"],
+        paid: ["shipped", "cancelled"],
+        shipped: ["delivered"],
+        delivered: [],
+        cancelled: [],
+    };
     private static readonly NON_CANCELLABLE_STATUSES: string[] = [
         "shipped",
         "delivered",
