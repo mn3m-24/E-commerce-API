@@ -2,6 +2,7 @@ import config from "../config/config.ts";
 import { randomUUID } from "node:crypto";
 import RefreshToken from "../models/refreshToken.model.ts";
 import type { IRfreshToken } from "../types/refreshTokens.types.ts";
+import type { UserRole } from "../types/auth.types.ts";
 import { Types } from "mongoose";
 import {
     generateRefreshTokenPayload,
@@ -11,8 +12,8 @@ import {
 import { hashInput } from "../utils/hash.utils.ts";
 
 export default class AuthService {
-    static createAccessToken(sub: string, role: "customer" | "admin") {
-        return signAccessToken({ sub, role });
+    static async createAccessToken(sub: string, role: UserRole) {
+        return await signAccessToken({ sub, role });
     }
 
     static async createRefreshToken(
@@ -21,7 +22,7 @@ export default class AuthService {
     ) {
         const familyId = randomUUID();
         const payload = generateRefreshTokenPayload(userId, familyId);
-        const token = signRefreshToken(payload);
+        const token = await signRefreshToken(payload);
         const tokenHash = hashInput(token);
 
         const dbToken = await RefreshToken.create({

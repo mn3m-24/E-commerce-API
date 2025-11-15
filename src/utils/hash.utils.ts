@@ -1,6 +1,6 @@
-import bcrypt from "bcryptjs";
+import { hashSync, compareSync } from "bcryptjs";
 
-export const hashInput = (input: string) => bcrypt.hashSync(input, 11);
+export const hashInput = (input: string) => hashSync(input, 11);
 
 export const compareHash = (input: string, hash: string) =>
-    bcrypt.compareSync(input, hash);
+    compareSync(input, hash);

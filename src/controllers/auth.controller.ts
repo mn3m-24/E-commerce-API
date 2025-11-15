@@ -1,6 +1,6 @@
 import config from "../config/config.ts";
-import { type RequestHandler } from "express";
-import { type JwtPayload } from "jsonwebtoken";
+import type { RequestHandler } from "express";
+import type { RefreshPayload } from "../types/auth.types.ts";
 import { verifyRefreshToken } from "../utils/jwt.utils.ts";
 import { compareHash } from "../utils/hash.utils.ts";
 import UserService from "../services/users.service.ts";
@@ -21,7 +21,7 @@ export const login: RequestHandler = async (req, res) => {
     if (!compareHash(password, user.passwordHash))
         return res.status(401).json({ error: "Invalid password" });
 
-    const access = AuthService.createAccessToken(
+    const access = await AuthService.createAccessToken(
         user._id.toString(),
         user.role,
     ); // access token generation
@@ -33,18 +33,16 @@ export const login: RequestHandler = async (req, res) => {
 
 export const refresh: RequestHandler = async (req, res) => {
     const { refreshToken } = req.cookies;
-    let decoded;
+    let payload: RefreshPayload;
     try {
-        decoded = verifyRefreshToken(refreshToken);
+        payload = await verifyRefreshToken(refreshToken);
     } catch (err) {
         console.error(err);
         return res.status(401).json({ error: "Invalid Refresh Token" });
     }
 
     // getting tokens that have the same familyId as the incoming token
-    const tokenInFamily = await AuthService.getFamilyTokens(
-        (decoded as JwtPayload).fam,
-    );
+    const tokenInFamily = await AuthService.getFamilyTokens(payload.fam);
 
     // matching the incoming token with any of the family tokens
     let matchedToken = null;
@@ -57,14 +55,14 @@ export const refresh: RequestHandler = async (req, res) => {
     // then a rotated token reuse has been detected
     if (!matchedToken) {
         if (tokenInFamily.length > 0)
-            await AuthService.revokeFamilyTokens((decoded as JwtPayload).fam);
+            await AuthService.revokeFamilyTokens(payload.fam);
         return res.status(401).json({
             error: "Refresh token reuse detected. All sessions revoked.",
         });
     }
     // if token exists but already used & revoked, then reuse detection
     if (matchedToken.revoked) {
-        await AuthService.revokeFamilyTokens((decoded as JwtPayload).fam);
+        await AuthService.revokeFamilyTokens(payload.fam);
         return res.status(401).json({
             error: "Refresh token revoked. Possible reuse detected. All sessions revoked.",
         });
@@ -80,7 +78,7 @@ export const refresh: RequestHandler = async (req, res) => {
     const user = await UserService.fetchUserById(
         matchedToken.userId.toString(),
     );
-    const newAccess = AuthService.createAccessToken(
+    const newAccess = await AuthService.createAccessToken(
         matchedToken.userId.toString(),
         user!.role,
     );
@@ -93,7 +91,7 @@ export const refresh: RequestHandler = async (req, res) => {
 
 export const logout: RequestHandler = async (req, res) => {
     const { refreshToken } = req.cookies;
-    const decoded = verifyRefreshToken(refreshToken);
-    await AuthService.revokeFamilyTokens((decoded as JwtPayload).fam);
+    const decoded = await verifyRefreshToken(refreshToken);
+    await AuthService.revokeFamilyTokens(decoded.fam);
     return res.clearCookie("refreshToken").json({ ok: true });
 };
